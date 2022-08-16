@@ -5,6 +5,7 @@ kt_android_library(
     srcs = ["MainActivity.kt"],
     visibility = ["//visibility:private"],
     deps = [
+        "@maven//:com_appboy_android_sdk_ui",
     ],
 )
 

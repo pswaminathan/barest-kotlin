@@ -50,6 +50,7 @@ load("@rules_jvm_external//:specs.bzl", "maven")
 maven_artifacts = (
     [
         maven.artifact("junit", "junit", "4.13", testonly = True),
+        'com.appboy:android-sdk-ui:22.0.0',
     ]
 )
 
