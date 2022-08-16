@@ -1,0 +1,15 @@
+load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+kt_android_library(
+    name = "lib",
+    srcs = ["MainActivity.kt"],
+    visibility = ["//visibility:private"],
+    deps = [
+    ],
+)
+
+android_binary(
+    name = "app",
+    deps = [":lib"],
+    manifest = "AndroidManifest.xml",
+)
