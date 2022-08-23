@@ -12,4 +12,5 @@ android_binary(
     name = "app",
     deps = [":lib"],
     manifest = "AndroidManifest.xml",
+    dex_shards = 2,
 )
