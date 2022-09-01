@@ -5,6 +5,8 @@ kt_android_library(
     srcs = ["MainActivity.kt"],
     visibility = ["//visibility:private"],
     deps = [
+        "@maven//:androidx_emoji2_emoji2",
+        "@maven//:androidx_lifecycle_lifecycle_process",
     ],
 )
 
