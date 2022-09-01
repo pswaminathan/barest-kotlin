@@ -14,4 +14,7 @@ android_binary(
     name = "app",
     deps = [":lib"],
     manifest = "AndroidManifest.xml",
+    manifest_values = {
+        "applicationId": "com.ergatta.demo",
+    }
 )
