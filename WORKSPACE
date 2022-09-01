@@ -50,6 +50,8 @@ load("@rules_jvm_external//:specs.bzl", "maven")
 maven_artifacts = (
     [
         maven.artifact("junit", "junit", "4.13", testonly = True),
+        "androidx.emoji2:emoji2:1.2.0",
+        "androidx.lifecycle:lifecycle-process:2.2.0",
     ]
 )
 

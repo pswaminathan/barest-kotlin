@@ -5,6 +5,8 @@ kt_android_library(
     srcs = ["MainActivity.kt"],
     visibility = ["//visibility:private"],
     deps = [
+        "@maven//:androidx_emoji2_emoji2",
+        "@maven//:androidx_lifecycle_lifecycle_process",
     ],
 )
 
@@ -12,4 +14,7 @@ android_binary(
     name = "app",
     deps = [":lib"],
     manifest = "AndroidManifest.xml",
+    manifest_values = {
+        "applicationId": "com.ergatta.demo",
+    }
 )
