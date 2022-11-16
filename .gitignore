@@ -19,3 +19,4 @@
 
 local.bazelrc
 .idea
+build_events.json

@@ -1,0 +1,50 @@
+name: build
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    outputs:
+      filename: ${{ steps.apkpath.output.UNSIGNED_APK_PATH }}
+      some: ${{ steps.tester.output.some }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: build app
+        run: bazel build --build_event_json_file=build_events.json "//android/app:app"
+
+      - name: Get unsigned APK path from build event log
+        id: apkpath
+        run: >-
+          echo "::set-output name=UNSIGNED_APK_PATH::$(
+            jq -e -r
+               -Ltools
+               'import "release_filter" as f; f::release_uri'
+               < build_events.json
+          )"
+
+      # - name: get filename
+      #   id: filename
+      #   run: |
+      #     export fn=$(jq -e -r \
+      #             -L${{ github.workspace }}/tools \
+      #             'import "release_filter" as f; f::release_uri' \
+      #             < ${{ github.workspace }}/build_events.json)
+      #     echo "here is my file: $fn"
+      #     echo "filename=$fn" >> $GITHUB_OUTPUT
+
+      - name: tester
+        id: tester
+        run: |
+          export some="hithere"
+          echo "here it is: $some"
+          echo "some=$some" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: show version
+        run: echo ${{ needs.build.outputs.UNSIGNED_APK_PATH }} ${{ needs.build.outputs.some }}
