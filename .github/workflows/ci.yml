@@ -6,45 +6,51 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-    outputs:
-      filename: ${{ steps.apkpath.output.UNSIGNED_APK_PATH }}
-      some: ${{ steps.tester.output.some }}
+    # outputs:
+    #   filename: ${{ steps.apkpath.output.UNSIGNED_APK_PATH }}
+    #   some: ${{ steps.tester.output.some }}
     steps:
       - uses: actions/checkout@v2
 
       - name: build app
-        run: bazel build --build_event_json_file=build_events.json "//android/app:app"
-
-      - name: Get unsigned APK path from build event log
-        id: apkpath
         run: >-
-          echo "::set-output name=UNSIGNED_APK_PATH::$(
-            jq -e -r
-               -Ltools
-               'import "release_filter" as f; f::release_uri'
-               < build_events.json
-          )"
+          bazel build
+          --build_event_json_file=build_events.json
+          --fat_apk_cpu=arm64-v8a
+          "//android/app:app"
 
-      # - name: get filename
-      #   id: filename
-      #   run: |
-      #     export fn=$(jq -e -r \
-      #             -L${{ github.workspace }}/tools \
-      #             'import "release_filter" as f; f::release_uri' \
-      #             < ${{ github.workspace }}/build_events.json)
-      #     echo "here is my file: $fn"
-      #     echo "filename=$fn" >> $GITHUB_OUTPUT
-
-      - name: tester
-        id: tester
+      - name: Decrypt keystore
         run: |
-          export some="hithere"
-          echo "here it is: $some"
-          echo "some=$some" >> $GITHUB_OUTPUT
+          echo "${{ secrets.RELEASE_KEYSTORE }}" > ${{ github.workspace }}/release.keystore.asc
+          gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" \
+              --batch ${{ github.workspace }}/release.keystore.asc > ${{ github.workspace }}/release.keystore
 
-  deploy:
-    runs-on: self-hosted
-    needs: build
-    steps:
-      - name: show version
-        run: echo ${{ needs.build.outputs.UNSIGNED_APK_PATH }} ${{ needs.build.outputs.some }}
+      - name: Sign APK
+        run: >-
+          apksigner sign
+          --ks release.keystore
+          --ks-pass '${{ secrets.RELEASE_STORE_PASSWORD }}'
+          --ks-key-alias key0
+          --key-pass '${{ secrets.RELEASE_KEY_PASSWORD }}'
+          --out release.apk
+          ${{ github.workspace }}/bazel-bin/src/release/app/app_unsigned.apk
+
+      - name: Generate metadata
+        run: |
+          cat << EOF > metadata_prod.json
+          {
+            "versionCode": $(apkanalyzer apk summary release.apk | cut -f2),
+            "latest": $(apkanalyzer apk summary release.apk | cut -f2),
+            "versionName": "$(apkanalyzer apk summary release.apk | cut -f3),"
+            "updated": "$(date +'%Y-%m-%dT%H:%M:%SZ')",
+            "sha256": "$(shasum -a256 release.apk | cut -f2 -d' ')",
+            "fileSizeBytes": $(apkanalyzer apk file-size release.apk)
+          }
+          EOF
+
+  # deploy:
+  #   runs-on: self-hosted
+  #   needs: build
+  #   steps:
+  #     - name: show version
+  #       run: echo ${{ needs.build.outputs.UNSIGNED_APK_PATH }} ${{ needs.build.outputs.some }}
