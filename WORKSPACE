@@ -19,8 +19,7 @@ rules_proto_toolchains()
 android_sdk_repository(
     name = "androidsdk",
     api_level = 31,
-    build_tools_version = "30.0.3",  # Build tools 31+ is not supported? https://github.com/bazelbuild/bazel/issues/10240#issuecomment-884419566
-    # build_tools_version = "32.0.0",
+    build_tools_version = "33.0.0",
 )
 
 http_archive(
